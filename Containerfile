@@ -135,6 +135,13 @@ RUN --mount=type=cache,dst=/var/cache \
     /ctx/install-kernel-akmods && \
     /ctx/cleanup
 
+# Navigate to kernel source directory inside the container build environment
+RUN cd /tmp/kernel-build/linux-* && \
+    for patch in /workspace/user_assets/kernel-patches/*.patch; do \
+        echo "Applying $patch..."; \
+        patch -p1 < "$patch"; \
+    done
+
 # Setup Copr repos
 RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/cache/libdnf5 \
@@ -510,6 +517,11 @@ RUN --mount=type=cache,dst=/var/cache \
         ublue-os-media-automount-udev && \
     { systemctl enable ublue-os-media-automount.service || true; } && \
     /ctx/cleanup
+
+# Example adding user-space booster utilities
+RUN git clone https://github.com/username/dmemcg-booster.git /tmp/dmemcg-booster && \
+    cd /tmp/dmemcg-booster && \
+    make && cp dmemcg-booster /usr/bin/
 
 # Cleanup & Finalize
 COPY system_files/overrides /
